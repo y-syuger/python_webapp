@@ -23,8 +23,12 @@ def index():
 
 @app.route('/add', methods=['POST'])
 def add_todo():
-    todo = request.form['todo']
-    deadline = datetime.strptime(request.form['deadline'], '%Y-%m-%d')
+    todo = request.form.get('todo', '').sprit()
+    deadline = datetime.strptime(request.form.get('deadline', ''), '%Y-%m-%d')
+
+    if not todo or not deadline:
+        return redirect(url_for('index', error="Todoと期限は必須項目です。"))
+    
     deadline_time = request.form.get('deadline_time')
     if not deadline_time:
         deadline_time = DEFAULT_TIME.strftime('%H:%M')
@@ -35,6 +39,20 @@ def add_todo():
     db.session.commit()
     # todo_list.append({'todo':todo, 'deadline':deadline, 'deadline-time':deadline_time})
     return redirect(url_for('index'))
+
+@app.route('/edit/<int:index>', methods=['GET', 'POST'])
+def edit_todo(index):
+    todo_to_edit = Todo.query.get_or_404(index)
+    if request.method == 'POST':
+        todo_to_edit.todo = request.form['todo']
+        todo_to_edit.deadline = datetime.strptime(request.form['deadline'], '%Y-%m-%d')
+        deadline_time = request.form.get('deadline_time')
+        if not deadline_time:
+            deadline_time = DEFAULT_TIME.strftime('%H:%M')
+        todo_to_edit.deadline_time = deadline_time
+        db.session.commit()
+        return redirect(url_for('index'))
+    return render_template('edit.html', todo=todo_to_edit)
 
 @app.route('/delete/<int:index>')
 def delete_todo(index):
