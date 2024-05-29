@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDoリスト</title>
+    <style>
+        body {
+            font-family:Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color:#fff;
+            border-radius:5px;
+            box-shadow:0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+        input[type='text'] {
+            width: 60%;
+            padding: 10px;
+            margin-right: 0px;
+            font-size: 16px;
+            border-radius: 5px 0 0 5px;
+            border: 1px solid #ccc;
+            border-right: none;
+        }
+        button[type='submit'] {
+            padding:10px 20px;
+            font-size: 16px;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 0 5px 5px 0;
+            cursor:pointer;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .delete-btn {
+            float: right;
+            background-color: #dc3545;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer
+        }
+        .edit-btn {
+            float: right;
+            padding: 5px 10px;
+            margin: 0 2px 0;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer
+        }
+        #calendar{
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        #calendar table {
+            display: inline-block;
+        }
+        /* カレンダーのヘッダー部分のスタイル */
+        th {
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        padding: 5px;
+        text-align: center;
+        }
+
+        /* カレンダーの日付部分のスタイル */
+        td {
+        border: 1px solid #ccc;
+        padding: 5px;
+        text-align: center;
+        }
+
+        /* 日付が選択されたときのスタイル */
+        td.selected {
+        background-color: #007bff;
+        color: #fff;
+        }
+
+        /* 今日の日付のスタイル */
+        td.today {
+            background-color:#f0f0f0;
+            font-weight: bold;
+        }
+
+        .form-group {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            align-items: flex-start;
+            margin: 10px;
+        }
+        label {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="calendar"></div>
+        
+    <div class="container">
+        <h1>ToDoリスト</h1>
+        <form action="/add" method="post">
+            <input type="text" name="todo" placeholder="ToDoを入力してください" required>
+            <div class="form-group">
+                <label for="deadline">期限</label>
+                <input type="date" id="deadline" name="deadline">
+                <input type="time" id="deadline-time" name="deadline_time">
+            </div>
+            <button type="submit">追加</button>
+        </form>
+        <ul>
+            {% for item in todo_list %}
+                <li>{{ item.todo }} - 期限：{{ item.deadline.strftime('%Y-%m-%d') }} {{ item.deadline_time }}   
+                    <button class="delete-btn" onclick="deleteItem({{ item.id }})">削除</button>
+                    <button class="edit-btn" onclick="editItem({{ item.id }})">編集</button>
+                 </li>
+                    
+            {% endfor %}
+        </ul>
+    </div>
+    <script>
+        function editItem(index) {
+            window.location.href = '/edit/' + index
+        }
+
+        function deleteItem(index) {
+            if (confirm("このToDoを削除しますか？")) {
+                window.location.href = '/delete/' + index
+            }
+        }
+
+        const calendarContainer = document.getElementById('calendar');
+
+        function createCalendar(year, month) {
+            //カレンダーの表示領域をクリア
+            calendarContainer.innerHTML = '';
+
+            //指定された年と月の最初の日を取得
+            const firstDayOfMonth = new Date(year, month - 1, 1);
+
+            //月の最初の日の曜日を取得（0: 日曜日, 1: 月曜日, ..., 6: 土曜日）
+            const firstDayOfWeek = firstDayOfMonth.getDay();
+
+            //月の日数を取得
+            const daysInMonth = new Date(year, month, 0).getDate();
+
+            // カレンダーの表を生成
+            const table = document.createElement('table');
+            const headerRow = document.createElement('tr');
+
+            // 年と月を表示するセルを追加
+            const titleCell = document.createElement('th');
+            titleCell.setAttribute('colspan','7');
+            titleCell.textContent = year + '年' + month + '月'
+            const titleRow = document.createElement('tr');
+            titleRow.appendChild(titleCell);
+            table.appendChild(titleRow)
+
+            // 曜日のヘッダーを生成
+            const daysOfWeekRow = document.createElement('tr');
+            const daysOfWeek = ['日', '月','火', '水', '木', '金', '土'];
+            daysOfWeek.forEach(day => {
+                const th = document.createElement('th');
+                th.textContent = day;
+                headerRow.appendChild(th);
+            });
+            table.appendChild(headerRow)
+
+            // 月の日付をカレンダーに追加
+            let date = 1;
+            for (let i = 0; i < 6; i++) {//最大で6週間分を表示
+                const row = document.createElement('tr');
+                for (let j = 0;j<7; j++) {//１週間分
+                    if(i === 0 && j<firstDayOfWeek){
+                        // 月の最初の週で、最初の日の前にある日は空白とする。
+                        const cell = document.createElement('td');
+                        row.appendChild(cell);
+                    }
+                    else if (date > daysInMonth){
+                        // 月の最後の日を超える場合は空白とする
+                        const cell = document.createElement('td');
+                        row.appendChild(cell)
+                    }
+                    else{
+                        // 日付をセルに追加
+                        const cell = document.createElement('td');
+                        cell.textContent = date;
+                        row.appendChild(cell);
+                        date++;
+                    }
+                } 
+                table.appendChild(row);  
+            }
+            // カレンダーを表示領域に追加
+            calendarContainer.appendChild(table);
+        }
+        
+        createCalendar(2024,5)
+    </script>
+</body>
+</html>
