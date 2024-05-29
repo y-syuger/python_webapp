@@ -66,6 +66,16 @@
             border-radius: 3px;
             cursor: pointer
         }
+
+        .edit-btn {
+            float: right;
+            padding: 5px 10px;
+            margin: 0 2px 0;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer
+        }
+        
         #calendar{
             text-align: center;
             font-family: Arial, sans-serif;
@@ -130,12 +140,23 @@
             {% for item in todo_list %}
                 <li>{{ item.todo }} - 期限：{{ item.deadline.strftime('%Y-%m-%d') }} {{ item.deadline_time }}   
                     <button class="delete-btn" onclick="deleteItem({{ item.id }})">削除</button>
+<<<<<<< HEAD
+=======
+                    <button class="edit-btn" onclick="editItem({{ item.id }})">編集</button>
+>>>>>>> sub1
                  </li>
                     
             {% endfor %}
         </ul>
     </div>
     <script>
+<<<<<<< HEAD
+=======
+        function editItem(index) {
+            window.location.href = '/edit/' + index
+        }
+
+>>>>>>> sub1
         function deleteItem(index) {
             if (confirm("このToDoを削除しますか？")) {
                 window.location.href = '/delete/' + index
