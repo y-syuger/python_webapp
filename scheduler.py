@@ -19,7 +19,8 @@ class Todo(db.Model):
     deadline = db.Column(db.Date, nullable=False)
     deadline_time = db.Column(db.String(20))
 
-LINE_NOTIFY_TOKEN = "JliBjSjauyqsomscbQow7W65DIJy61cF96rcNJTYHRc"
+# ここに、利用者のLINEトークンを入れてください。
+LINE_NOTIFY_TOKEN = "Your_Line_Notify_Token"
 
 def send_todo_notifications():
     with app.app_context():
